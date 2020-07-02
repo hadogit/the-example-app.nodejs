@@ -1,5 +1,5 @@
-
-ARTIFACTS_NAME = "artifacts-${BRANCH_NAME}-${BUILD_ID}.zip"
+ARTIFACTORY_URL = "http://157.175.86.184:8081/artifactory"
+ARTIFACT_NAME = "artifacts-${BRANCH_NAME}-${BUILD_ID}.tar.gz"
 WORKSPACE = "${JOB_NAME}/${BUILD_ID}"
 pipeline {
     agent any
@@ -35,29 +35,33 @@ pipeline {
                 steps {
                     script{
                         echo "Publishing Artifacts..."
-                        sh "tar -zcvf ../${ARTIFACTS_NAME} ."
+                        sh "tar -zcvf ../${ARTIFACT_NAME} ."
                         def server = Artifactory.server 'ART'
                         
                         def uploadSpec = """{
                           "files": [
                             {
-                              "pattern": "../${ARTIFACTS_NAME}",
+                              "pattern": "../${ARTIFACT_NAME}",
                               "target": "example-repo-local/${BRANCH_NAME}/"
                             }
                          ]
                         }"""
                         server.upload spec: uploadSpec                        
                     }
-
- 
-//                    sh "jfrog rt ping --url=http://157.175.86.184:8081"
-//                    sh "jfrog rt u artifacts-${BUILD_ID}.gzip example-repo-local --url=http://157.175.86.184:8081 --user=interview --password=interview123!"
                     
                 }
         }
 		stage('Deploy To Dev') { 
             steps {
-                echo "Deploying To Development..."
+                script{
+                    echo "Deploying To Development..."
+				    withCredentials([sshUserPrivateKey(credentialsId: 'environment-user', keyFileVariable: 'identity', passphraseVariable: '', usernameVariable: 'ubuntu')]) {
+				        devEnvironment.user = "ubuntu"
+                        devEnvironment.identityFile = identity
+				    	sshCommand remote: devEnvironment, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${BRANCH_NAME}/${ARTIFACT_NAME}"				
+				        sshCommand remote: devEnvironment, command: "tar xvf ${ARTIFACT_NAME} && npm run start:dev"
+				    }  
+                }
             }
         }
 		stage('Deploy To Staging'){
