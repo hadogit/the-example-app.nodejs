@@ -1,6 +1,5 @@
 ARTIFACTORY_URL = "http://157.175.86.184:8081/artifactory"
-ARTIFACT_NAME = "artifacts-${Branch}-${Build_Number}.tar.gz"
-
+ARTIFACT_NAME = ""
 BuildersJobPath = "nodejs-pipeline/"
 
 def SRAGING_ENVIRONMENT = [:]
@@ -26,6 +25,7 @@ pipeline {
 				script{
 					BuildersJobPath = BuildersJobPath + params.Branch
 					Build_Number = getBuildNumber(BuildersJobPath)
+					ARTIFACT_NAME = "artifacts-${Branch}-${Build_Number}.tar.gz"
 				}
 			}
 		}

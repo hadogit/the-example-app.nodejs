@@ -14,12 +14,17 @@ pipeline {
     tools{
         nodejs "nodeJs14.5"
     }
+	options {
+        timeout(time: 3, unit: 'HOURS')
+        timestamps()
+    }
+	
 	triggers {
         pollSCM('* * * * *')
     }
-	 parameters {
+	parameters {
         booleanParam(name: 'Deploy_To_Staging', defaultValue: false, description: 'Do You Want To Deploy To Staging?')
-		}
+	}
     stages {
         stage('Prepare Environment') {
             steps {
