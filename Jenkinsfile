@@ -80,14 +80,16 @@ pipeline {
                     params.Deploy_To_Staging
                 }
             }
-		steps {
-				input message: "Are You Sure?"
-                echo "Deploying To Staging..."
-				result = build(job: DeployToStagingJobPath,
-					parameters: [
-						string(name: "Build_Number", value: BUILD_ID),
-						string(name: "Branch", value: BRANCH_NAME) ],
-					wait: true)
+		    steps {
+		        script{
+		    		input message: "Are You Sure?"
+                    echo "Deploying To Staging..."
+		    		result = build(job: DeployToStagingJobPath,
+		    			parameters: [
+		    				string(name: "Build_Number", value: BUILD_ID),
+		    				string(name: "Branch", value: BRANCH_NAME) ],
+		    			wait: true)
+                }
             }		
 		}
     }
