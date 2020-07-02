@@ -2,10 +2,10 @@ ARTIFACTORY_URL = "http://157.175.86.184:8081/artifactory"
 ARTIFACT_NAME = ""
 BuildersJobPath = "nodejs-pipeline/"
 
-def SRAGING_ENVIRONMENT = [:]
-SRAGING_ENVIRONMENT.name = 'staging'
-SRAGING_ENVIRONMENT.host = '157.175.82.31'
-SRAGING_ENVIRONMENT.allowAnyHosts = true
+def STAGING_ENVIRONMENT = [:]
+STAGING_ENVIRONMENT.name = 'staging'
+STAGING_ENVIRONMENT.host = '157.175.82.31'
+STAGING_ENVIRONMENT.allowAnyHosts = true
 
 pipeline {
     agent any
@@ -34,13 +34,13 @@ pipeline {
                 script{
                     echo "Deploying To Development..."
 				    withCredentials([sshUserPrivateKey(credentialsId: 'environment-user', keyFileVariable: 'identity', passphraseVariable: '', usernameVariable: 'ubuntu')]) {
-				        SRAGING_ENVIRONMENT.user = "ubuntu"
-                        SRAGING_ENVIRONMENT.identityFile = identity
-				    	sshCommand remote: SRAGING_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${Branch}/${ARTIFACT_NAME}"				
-				        sshCommand remote: SRAGING_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start:dev&"
+				        STAGING_ENVIRONMENT.user = "ubuntu"
+                        STAGING_ENVIRONMENT.identityFile = identity
+				    	sshCommand remote: STAGING_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${Branch}/${ARTIFACT_NAME}"				
+				        sshCommand remote: STAGING_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start&"
 				    }
-					echo "Running on ${SRAGING_ENVIRONMENT.host}:3000"
-					currentBuild.description = "${SRAGING_ENVIRONMENT.host}:3000"
+					echo "Running on ${STAGING_ENVIRONMENT.host}:3000"
+					currentBuild.description = "${STAGING_ENVIRONMENT.host}:3000"
                 }
             }
         }
