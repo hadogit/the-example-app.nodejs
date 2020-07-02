@@ -6,6 +6,9 @@ pipeline {
 	triggers {
         pollSCM('* * * * *')
     }
+	 parameters {
+        booleanParam(name: 'Deploy_To_Staging', defaultValue: false, description: 'Do You Want To Deploy To Staging?')
+		}
     stages {
         stage('Prepare Environment') {
             steps {
@@ -14,14 +17,6 @@ pipeline {
                 sh 'npm install'
             }
         }
-		stage('Build') {
-			steps {
-				script {
-				sh 'npm start:watch'
-				sh 'npm pack'
-				}
-			}
-		}
         stage('Test') { 
             steps {
                 echo "Running Test..."
@@ -34,15 +29,30 @@ pipeline {
             }
         }
 		stage('Publish Artifacts') { 
-            steps {
-                echo "Publishing Artifacts..."
-            }
+                steps {
+                    echo "Publishing Artifacts..."
+                    sh "tar -zcvf artifacts-${BUILD_ID}.gzip ./bin"
+                    sh "jfrog rt ping --url=http://157.175.86.184:8081"
+                    sh "jfrog rt u artifacts-${BUILD_ID}.gzip example-repo-local --url=http://157.175.86.184:8081 --user=interview --password=interview123!"
+                    
+                }
         }
 		stage('Deploy To Dev') { 
             steps {
                 echo "Deploying To Development..."
             }
         }
+		stage('Deploy To Staging'){
+		    when {
+                expression {
+                    params.Deploy_To_Staging
+                }
+            }
+		steps {
+                echo "Deploying To Staging..."
+            }
+		
+		}
     }
 	post{
 		success {
