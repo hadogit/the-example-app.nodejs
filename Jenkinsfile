@@ -7,6 +7,8 @@ DEV_ENVIRONMENT.name = 'dev'
 DEV_ENVIRONMENT.host = '15.185.40.243'
 DEV_ENVIRONMENT.allowAnyHosts = true
 
+DeployToStagingJobPath = "Deploy_To_Staging"
+
 pipeline {
     agent any
     tools{
@@ -65,8 +67,10 @@ pipeline {
 				        DEV_ENVIRONMENT.user = "ubuntu"
                         DEV_ENVIRONMENT.identityFile = identity
 				    	sshCommand remote: DEV_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${BRANCH_NAME}/${ARTIFACT_NAME}"				
-				        sshCommand remote: DEV_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start:dev"
-				    }  
+				        sshCommand remote: DEV_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start:dev&"
+				    }
+					echo "Running on ${DEV_ENVIRONMENT.host}:3000"
+					currentBuild.description = "${DEV_ENVIRONMENT.host}:3000"
                 }
             }
         }
@@ -79,8 +83,12 @@ pipeline {
 		steps {
 				input message: "Are You Sure?"
                 echo "Deploying To Staging..."
-            }
-		
+				result = build(job: DeployToStagingJobPath,
+					parameters: [
+						string(name: "Build_Number", value: BUILD_ID),
+						string(name: "Branch", value: BRANCH_NAME) ],
+					wait: true)
+            }		
 		}
     }
 	post{

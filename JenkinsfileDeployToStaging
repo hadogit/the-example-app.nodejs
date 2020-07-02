@@ -1,0 +1,63 @@
+ARTIFACTORY_URL = "http://157.175.86.184:8081/artifactory"
+ARTIFACT_NAME = "artifacts-${Branch}-${Build_Number}.tar.gz"
+
+BuildersJobPath = "nodejs-pipeline/"
+
+def SRAGING_ENVIRONMENT = [:]
+SRAGING_ENVIRONMENT.name = 'staging'
+SRAGING_ENVIRONMENT.host = '157.175.82.31'
+SRAGING_ENVIRONMENT.allowAnyHosts = true
+
+pipeline {
+    agent any
+	 parameters {
+        string(name: 'Build_Number', defaultValue: "", description: 'Insert build number to deploy staging')
+		string(name: 'Branch', defaultValue: "yakir", description: 'Insert branch name')
+		}
+    stages {
+	
+		stage('Prepare Environment'){
+			when {
+                expression {
+                    params.Build_Number == ""
+                }
+            }
+			steps{
+				script{
+					BuildersJobPath = BuildersJobPath + params.Branch
+					Build_Number = getBuildNumber(BuildersJobPath)
+				}
+			}
+		}
+		stage('Deploy To Staging') { 
+            steps {
+                script{
+                    echo "Deploying To Development..."
+				    withCredentials([sshUserPrivateKey(credentialsId: 'environment-user', keyFileVariable: 'identity', passphraseVariable: '', usernameVariable: 'ubuntu')]) {
+				        SRAGING_ENVIRONMENT.user = "ubuntu"
+                        SRAGING_ENVIRONMENT.identityFile = identity
+				    	sshCommand remote: SRAGING_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${Branch}/${ARTIFACT_NAME}"				
+				        sshCommand remote: SRAGING_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start:dev&"
+				    }
+					echo "Running on ${SRAGING_ENVIRONMENT.host}:3000"
+					currentBuild.description = "${SRAGING_ENVIRONMENT.host}:3000"
+                }
+            }
+        }
+    }
+	post{
+		success {
+		    script{
+				echo "Success"
+			}
+		}
+	}
+}
+
+
+@NonCPS
+def getBuildNumber(String jobName) {
+    print("getBuildNumber")
+    def job = Jenkins.instance.getItemByFullName(jobName)
+    return job.getLastSuccessfulBuild().getNumber()
+}
