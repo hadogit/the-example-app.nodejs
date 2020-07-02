@@ -7,13 +7,21 @@ pipeline {
         pollSCM('* * * * *')
     }
     stages {
-        stage('Build') {
+        stage('Prepare Environment') {
             steps {
 				echo "Building ${BRANCH_NAME}"
 				sh 'npm install -g jest-cli'
                 sh 'npm install'
             }
         }
+		stage('Build') {
+			steps {
+				script {
+				sh 'npm start:watch'
+				sh 'npm pack'
+				}
+			}
+		}
         stage('Test') { 
             steps {
                 echo "Running Test..."
