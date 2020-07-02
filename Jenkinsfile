@@ -1,6 +1,12 @@
 ARTIFACTORY_URL = "http://157.175.86.184:8081/artifactory"
 ARTIFACT_NAME = "artifacts-${BRANCH_NAME}-${BUILD_ID}.tar.gz"
 WORKSPACE = "${JOB_NAME}/${BUILD_ID}"
+
+def DEV_ENVIRONMENT = [:]
+DEV_ENVIRONMENT.name = 'dev'
+DEV_ENVIRONMENT.host = '15.185.40.243'
+DEV_ENVIRONMENT.allowAnyHosts = true
+
 pipeline {
     agent any
     tools{
@@ -56,10 +62,10 @@ pipeline {
                 script{
                     echo "Deploying To Development..."
 				    withCredentials([sshUserPrivateKey(credentialsId: 'environment-user', keyFileVariable: 'identity', passphraseVariable: '', usernameVariable: 'ubuntu')]) {
-				        devEnvironment.user = "ubuntu"
-                        devEnvironment.identityFile = identity
-				    	sshCommand remote: devEnvironment, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${BRANCH_NAME}/${ARTIFACT_NAME}"				
-				        sshCommand remote: devEnvironment, command: "tar xvf ${ARTIFACT_NAME} && npm run start:dev"
+				        DEV_ENVIRONMENT.user = "ubuntu"
+                        DEV_ENVIRONMENT.identityFile = identity
+				    	sshCommand remote: DEV_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${BRANCH_NAME}/${ARTIFACT_NAME}"				
+				        sshCommand remote: DEV_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start:dev"
 				    }  
                 }
             }
@@ -71,6 +77,7 @@ pipeline {
                 }
             }
 		steps {
+				input message: "Are You Sure?"
                 echo "Deploying To Staging..."
             }
 		
