@@ -1,3 +1,6 @@
+
+ARTIFACTS_NAME = "artifacts-${BRANCH_NAME}-${BUILD_ID}.zip"
+WORKSPACE = "${JOB_NAME}/${BUILD_ID}"
 pipeline {
     agent any
     tools{
@@ -30,10 +33,25 @@ pipeline {
         }
 		stage('Publish Artifacts') { 
                 steps {
-                    echo "Publishing Artifacts..."
-                    sh "tar -zcvf artifacts-${BUILD_ID}.gzip ./bin"
-                    sh "jfrog rt ping --url=http://157.175.86.184:8081"
-                    sh "jfrog rt u artifacts-${BUILD_ID}.gzip example-repo-local --url=http://157.175.86.184:8081 --user=interview --password=interview123!"
+                    script{
+                        echo "Publishing Artifacts..."
+                        sh "tar -zcvf ../${ARTIFACTS_NAME} ."
+                        def server = Artifactory.server 'ART'
+                        
+                        def uploadSpec = """{
+                          "files": [
+                            {
+                              "pattern": "../${ARTIFACTS_NAME}",
+                              "target": "example-repo-local/${BRANCH_NAME}/"
+                            }
+                         ]
+                        }"""
+                        server.upload spec: uploadSpec                        
+                    }
+
+ 
+//                    sh "jfrog rt ping --url=http://157.175.86.184:8081"
+//                    sh "jfrog rt u artifacts-${BUILD_ID}.gzip example-repo-local --url=http://157.175.86.184:8081 --user=interview --password=interview123!"
                     
                 }
         }
