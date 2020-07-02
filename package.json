@@ -19,6 +19,12 @@
     "test:unit": "jest test/unit",
     "test:unit:watch": "jest test/unit --watch"
   },
+  "jset":{
+    "coverageReporters": [
+      "text",
+      "cobertura"
+    ]
+  }
   "engines": {
     "node": ">=8.9.3"
   },
@@ -50,4 +56,3 @@
     "yargs": "^11.0.0"
   }
 }
-
