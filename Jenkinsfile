@@ -3,6 +3,9 @@ pipeline {
     tools{
         nodejs "nodeJs14.5"
     }
+	triggers {
+        pollSCM('* * * * *')
+    }
     stages {
         stage('Build') {
             steps {
