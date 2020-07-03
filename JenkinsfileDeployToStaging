@@ -38,9 +38,12 @@ pipeline {
                         STAGING_ENVIRONMENT.identityFile = identity
 				    	sshCommand remote: STAGING_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${Branch}/${ARTIFACT_NAME}"				
 				        sshCommand remote: STAGING_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start&"
+				        sshCommand remote: STAGING_ENVIRONMENT, command: 'sudo docker ps -aq | awk "{print $1}" | xargs -r --no-run-if-empty sudo docker stop && \
+                            sudo docker ps -aq --no-trunc | awk "{print $1}" | xargs -r --no-run-if-empty sudo docker rm'
+				        sshCommand remote: STAGING_ENVIRONMENT, command: "sudo docker image prune -af"
 				        sshCommand remote: STAGING_ENVIRONMENT, command: "sudo docker build -t nodejs/${Build_Number} ."
-				        sshCommand remote: STAGING_ENVIRONMENT, command: 'sudo docker stop $(sudo docker container ls -aq)'
-				        sshCommand remote: STAGING_ENVIRONMENT, command: "sudo docker run -d --name=${CONTAINER_NAME} nodejs/${Build_Number}"
+				        sshCommand remote: STAGING_ENVIRONMENT, command: "sudo docker run -p 3000:3000 -d --name=${CONTAINER_NAME} nodejs/${Build_Number}"
+				       
 				    }
 					echo "Running on ${STAGING_ENVIRONMENT.host}:3000"
 					currentBuild.description = "${STAGING_ENVIRONMENT.host}:3000"

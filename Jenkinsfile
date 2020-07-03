@@ -73,9 +73,11 @@ pipeline {
                         DEV_ENVIRONMENT.identityFile = identity
 				    	sshCommand remote: DEV_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${BRANCH_NAME}/${ARTIFACT_NAME}"				
 				        sshCommand remote: DEV_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME}"
-						sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker build -t nodejs/${BUILD_ID} ."
-				        sshCommand remote: DEV_ENVIRONMENT, command: 'sudo docker stop $(sudo docker container ls -aq)'
-				        sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker run -d --name=${CONTAINER_NAME} nodejs/${BUILD_ID}"
+				        sshCommand remote: DEV_ENVIRONMENT, command: 'sudo docker ps -aq | awk "{print $1}" | xargs -r --no-run-if-empty sudo docker stop && \
+                            sudo docker ps -aq --no-trunc | awk "{print $1}" | xargs -r --no-run-if-empty sudo docker rm'
+				        sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker image prune -af"
+				        sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker build -t nodejs/${BUILD_ID} ."
+				        sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker run -p 3000:3000 -d --name=${CONTAINER_NAME} nodejs/${BUILD_ID}"
 
 				    }
 					echo "Running on ${DEV_ENVIRONMENT.host}:3000"
