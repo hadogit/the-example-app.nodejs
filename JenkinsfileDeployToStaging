@@ -25,6 +25,7 @@ pipeline {
 				script{
 					BuildersJobPath = BuildersJobPath + params.Branch
 					Build_Number = getBuildNumber(BuildersJobPath)
+					echo "Last successful build for branch ${Branch}: ${Build_Number}"
 					ARTIFACT_NAME = "artifacts-${Branch}-${Build_Number}.tar.gz"
 				}
 			}
