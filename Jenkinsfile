@@ -74,8 +74,8 @@ pipeline {
 				    	sshCommand remote: DEV_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${BRANCH_NAME}/${ARTIFACT_NAME}"				
 				        sshCommand remote: DEV_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME}"
 						sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker build -t nodejs/${BUILD_ID} ."
-				       // sshCommand remote: DEV_ENVIRONMENT, command: 'sudo docker stop $(sudo docker container ls -aq)'
-				        sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker run -d --name=${CONTAINER_NAME} nodejs"
+				        sshCommand remote: DEV_ENVIRONMENT, command: 'sudo docker stop $(sudo docker container ls -aq)'
+				        sshCommand remote: DEV_ENVIRONMENT, command: "sudo docker run -d --name=${CONTAINER_NAME} nodejs/${BUILD_ID}"
 
 				    }
 					echo "Running on ${DEV_ENVIRONMENT.host}:3000"
