@@ -1,7 +1,7 @@
 ARTIFACTORY_URL = "http://157.175.86.184:8081/artifactory"
 ARTIFACT_NAME = ""
 BuildersJobPath = "nodejs-pipeline/"
-
+CONTAINER_NAME = "mynodejs"
 def STAGING_ENVIRONMENT = [:]
 STAGING_ENVIRONMENT.name = 'staging'
 STAGING_ENVIRONMENT.host = '157.175.82.31'
@@ -38,6 +38,9 @@ pipeline {
                         STAGING_ENVIRONMENT.identityFile = identity
 				    	sshCommand remote: STAGING_ENVIRONMENT, command: "wget --user interview --password interview123! ${ARTIFACTORY_URL}/example-repo-local/${Branch}/${ARTIFACT_NAME}"				
 				        sshCommand remote: STAGING_ENVIRONMENT, command: "tar xvf ${ARTIFACT_NAME} && npm run start&"
+				        sshCommand remote: STAGING_ENVIRONMENT, command: "sudo docker build -t nodejs/${Build_Number} ."
+				        sshCommand remote: STAGING_ENVIRONMENT, command: "sudo docker stop ${CONTAINER_NAME} && sudo docker rm ${CONTAINER_NAME}"
+				        sshCommand remote: STAGING_ENVIRONMENT, command: "sudo docker run -d --name=${CONTAINER_NAME} nodejs"
 				    }
 					echo "Running on ${STAGING_ENVIRONMENT.host}:3000"
 					currentBuild.description = "${STAGING_ENVIRONMENT.host}:3000"
